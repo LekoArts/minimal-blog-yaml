@@ -27,7 +27,7 @@ exports.onCreateNode = ({ node, actions, getNode, createNodeId, createContentDig
   const fileNode = getNode(node.parent)
   const source = fileNode.sourceInstanceName
 
-  if (node.internal.type === `PostsYaml` && source === 'posts') {
+  if (node.internal.type === `PostsYaml` && source === 'content/posts') {
     let modifiedTags
 
     if (node.tags) {
