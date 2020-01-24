@@ -14,13 +14,20 @@ exports.createSchemaCustomization = ({ actions }) => {
       banner: File @fileByRelativePath
       description: String
     }
+
+    type YamlPage implements Node & Page {
+      slug: String!
+      title: String!
+      excerpt(pruneLength: Int = 140): String!
+      body: String!
+    }
   `)
 }
 
 exports.onCreateNode = ({ node, actions, getNode, createNodeId, createContentDigest }) => {
   const { createNode, createParentChildLink } = actions
 
-  if (node.internal.type !== `PostsYaml`) {
+  if (node.internal.type !== `PostsYaml` && node.internal.type !== `PagesYaml`) {
     return
   }
 
@@ -68,5 +75,32 @@ exports.onCreateNode = ({ node, actions, getNode, createNodeId, createContentDig
     })
 
     createParentChildLink({ parent: node, child: getNode(yamlPostId) })
+  }
+
+  if (node.internal.type === `PagesYaml` && source === 'content/pages') {
+    const fieldData = {
+      slug: node.slug,
+      title: node.title,
+      body: node.body,
+      excerpt: node.excerpt,
+    }
+
+    const yamlPageId = createNodeId(`${node.id} >>> YamlPage`)
+
+    createNode({
+      ...fieldData,
+      // Required fields
+      id: yamlPageId,
+      parent: node.id,
+      children: [],
+      internal: {
+        type: `YamlPage`,
+        contentDigest: createContentDigest(fieldData),
+        content: JSON.stringify(fieldData),
+        description: `Yaml implementation of the Page interface`,
+      },
+    })
+
+    createParentChildLink({ parent: node, child: getNode(yamlPageId) })
   }
 }
